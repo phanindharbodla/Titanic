@@ -28,6 +28,7 @@ def main():
     # reading data from files
     train = pd.read_csv('./train.csv')
     test = pd.read_csv('./test.csv')
+
     #Filling missing data and assinging numbers to categorical columns
     train.loc[train["Sex"] == "male", "Sex"] = 0
     train.loc[train["Sex"] == "female", "Sex"] = 1
@@ -47,10 +48,14 @@ def main():
     cabin_list = ['F G', 'A', 'B', 'C', 'D', 'E', 'F', 'T', 'G', 'H']
     train['Deck'] = train['Cabin'].map(lambda x: substrings_in_string(x, cabin_list))
     test['Deck'] = test['Cabin'].map(lambda x: substrings_in_string(x, cabin_list))
-    train["family"] = (train["SibSp"] + train["Parch"] + 1)
-    test["family"] = (test["SibSp"] + test["Parch"] + 1)
     train["Age"] = train["Age"].fillna(train.groupby(["Survived", "Sex", "Pclass"])["Age"].transform("median")) # filling missing age with relevant medians
     test["Age"] = test["Age"].fillna(test.groupby(["Sex", "Pclass"])["Age"].transform("median"))
+
+    #feature engineering
+    train["family"] = (train["SibSp"] + train["Parch"] + 1)
+    test["family"] = (test["SibSp"] + test["Parch"] + 1)
+
+    # hypothesis
     target = np.array(train.Survived).transpose()
     features_forest = np.array([train.Pclass, train.Age, train.Sex, train.Fare, train.SibSp,
                                 train.Parch, train.Embarked, train.family, train.Deck]).transpose()
@@ -62,6 +67,8 @@ def main():
     pred_vec_forest = my_forest.predict(features_forest)
     mat = pred_eval(pred_vec_forest, target)
     pred_forest = my_forest.predict(test_features_forest)
+
+    #output
     print(mat)
     print(my_forest.feature_importances_)
     StackingSubmission = pd.DataFrame({'PassengerId': test.PassengerId, 'Survived': pred_forest})
