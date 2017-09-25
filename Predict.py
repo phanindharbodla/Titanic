@@ -16,7 +16,7 @@ def main():
     # Filling missing data and labeling categorical columns
     train["Embarked"] = train["Embarked"].fillna("C")
     train["Cabin"] = train["Cabin"].fillna('H')
-    train["Deck"] = train["Embarked"].str[0]
+    train["Deck"] = train["Cabin"].str[0]
     train["Age"] = train["Age"].fillna(train.groupby(["Survived", "Sex", "Pclass"])["Age"].transform("median"))
     train["family"] = (train["SibSp"] + train["Parch"] + 1)
     test["Embarked"] = test["Embarked"].fillna("C")
