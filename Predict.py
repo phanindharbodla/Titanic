@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn import preprocessing
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 
@@ -18,9 +19,9 @@ def main():
     train["Deck"] = train["Cabin"].fillna('H').str[0]
     train["Age"] = train["Age"].fillna(train.groupby(["Survived", "Sex", "Pclass"])["Age"].transform("median"))
     train["family"] = (train["SibSp"] + train["Parch"] + 1)
-    test.set_value(152, 'Fare', train['Fare'].median())
+    test.set_value(152, 'Fare', train[(train['Pclass'] == 3) & (train['Embarked'] == 'S')]['Fare'].median())
     test["Deck"] = test["Cabin"].fillna('H').str[0]
-    test["Age"] = test["Age"].fillna(test.groupby(["Sex", "Pclass"])["Age"].transform("median"))
+    test["Age"] = test["Age"].fillna(train.groupby(["Sex", "Pclass"])["Age"].transform("median"))
     test["family"] = (test["SibSp"] + test["Parch"] + 1)
 
     labeler = preprocessing.LabelEncoder()
@@ -29,12 +30,23 @@ def main():
         test[col] = labeler.fit_transform(test[col])
 
     forest = RandomForestClassifier(max_depth=5, n_estimators=120, min_samples_split=2)
+    gbc = GradientBoostingClassifier(learning_rate=0.05)
     my_forest = forest.fit(train[columns], target)
+    my_gbc = gbc.fit(train[columns], target)
     predictions = my_forest.predict(train[columns])
+    predictions_gbc = my_gbc.predict(train[columns])
+    print('Random Forest')
     print(accuracy_score(predictions, target))
     print("( tp, fp, fn, tn ) = ", np.reshape(confusion_matrix(predictions, target), 4))
-    test_predictions = my_forest.predict(test[columns])
-    pd.DataFrame({'PassengerId': test.PassengerId, 'Survived': test_predictions}).to_csv("Submission.csv", index=False)
+    print(forest.feature_importances_)
+    print('Gradient Boost')
+    print(accuracy_score(predictions_gbc, target))
+    print("( tp, fp, fn, tn ) = ", np.reshape(confusion_matrix(predictions_gbc, target), 4))
+    print(gbc.feature_importances_)
+    test_rf = my_forest.predict(test[columns])
+    test_gb = my_gbc.predict(test[columns])
+    pd.DataFrame({'PassengerId': test.PassengerId, 'Survived': test_rf}).to_csv("output_rf.csv", index=False)
+    pd.DataFrame({'PassengerId': test.PassengerId, 'Survived': test_gb}).to_csv("output_gb.csv", index=False)
 
 
 if __name__ == '__main__':
