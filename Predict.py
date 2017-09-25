@@ -15,14 +15,11 @@ def main():
 
     # Filling missing data and labeling categorical columns
     train["Embarked"] = train["Embarked"].fillna("C")
-    train["Cabin"] = train["Cabin"].fillna('H')
-    train["Deck"] = train["Cabin"].str[0]
+    train["Deck"] = train["Cabin"].fillna('H').str[0]
     train["Age"] = train["Age"].fillna(train.groupby(["Survived", "Sex", "Pclass"])["Age"].transform("median"))
     train["family"] = (train["SibSp"] + train["Parch"] + 1)
-    test["Embarked"] = test["Embarked"].fillna("C")
     test.set_value(152, 'Fare', train['Fare'].median())
-    test["Cabin"] = test["Cabin"].fillna('H')
-    test["Deck"] = test["Cabin"].str[0]
+    test["Deck"] = test["Cabin"].fillna('H').str[0]
     test["Age"] = test["Age"].fillna(test.groupby(["Sex", "Pclass"])["Age"].transform("median"))
     test["family"] = (test["SibSp"] + test["Parch"] + 1)
 
@@ -37,8 +34,7 @@ def main():
     print(accuracy_score(predictions, target))
     print("( tp, fp, fn, tn ) = ", np.reshape(confusion_matrix(predictions, target), 4))
     test_predictions = my_forest.predict(test[columns])
-    output = pd.DataFrame({'PassengerId': test.PassengerId, 'Survived': test_predictions})
-    output.to_csv("Submission.csv", index=False)
+    pd.DataFrame({'PassengerId': test.PassengerId, 'Survived': test_predictions}).to_csv("Submission.csv", index=False)
 
 
 if __name__ == '__main__':
