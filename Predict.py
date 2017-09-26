@@ -14,7 +14,9 @@ def main():
     columns = ['Pclass', 'Age', 'Sex', 'Fare', 'SibSp', 'Parch', 'Embarked', 'family', 'Deck']
     target = np.array(train.Survived).transpose()
     train = train.join(train.Name.str.split(',', 1, expand=True).rename(columns={0: 'FamilyCode', 1: 'PassengerName'}))
+    train = train.join(train.PName.str.split('.', 1, expand=True).rename(columns={0: 'TitleClass', 1: 'FirstName'}))
     test = train.join(test.Name.str.split(',', 1, expand=True).rename(columns={0: 'FamilyCode', 1: 'PassengerName'}))
+    test = test.join(test.PName.str.split('.', 1, expand=True).rename(columns={0: 'TitleClass', 1: 'FirstName'}))
 
     # Filling missing data and labeling categorical columns
     train["Embarked"] = train["Embarked"].fillna("C")
