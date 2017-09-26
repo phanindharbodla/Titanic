@@ -13,6 +13,8 @@ def main():
     cat_vars = ['Pclass', 'Embarked', 'Sex', 'Deck']
     columns = ['Pclass', 'Age', 'Sex', 'Fare', 'SibSp', 'Parch', 'Embarked', 'family', 'Deck']
     target = np.array(train.Survived).transpose()
+    train = train.join(train.Name.str.split(',', 1, expand=True).rename(columns={0: 'FamilyCode', 1: 'PassengerName'}))
+    test = train.join(test.Name.str.split(',', 1, expand=True).rename(columns={0: 'FamilyCode', 1: 'PassengerName'}))
 
     # Filling missing data and labeling categorical columns
     train["Embarked"] = train["Embarked"].fillna("C")
@@ -39,6 +41,8 @@ def main():
     print(accuracy_score(predictions, target))
     print("( tp, fp, fn, tn ) = ", np.reshape(confusion_matrix(predictions, target), 4))
     print(forest.feature_importances_)
+    # train['predictions'] = predictions
+    # train.to_csv("validation.csv", index=False)
     print('Gradient Boost')
     print(accuracy_score(predictions_gbc, target))
     print("( tp, fp, fn, tn ) = ", np.reshape(confusion_matrix(predictions_gbc, target), 4))
